@@ -1,0 +1,127 @@
+{
+ "code": 200,
+ "message": "OK",
+ "tweet": {
+  "url": "https://x.com/clintgibler/status/1927502471254937674",
+  "id": "1927502471254937674",
+  "text": "🔥 𝐨3 𝐟𝐨𝐮𝐧𝐝 𝐚 𝐫𝐞𝐦𝐨𝐭𝐞 𝐳𝐞𝐫𝐨𝐝𝐚𝐲 𝐯𝐮𝐥𝐧𝐞𝐫𝐚𝐛𝐢𝐥𝐢𝐭𝐲 𝐢𝐧 𝐭𝐡𝐞 𝐋𝐢𝐧𝐮𝐱 𝐤𝐞𝐫𝐧𝐞𝐥’𝐬 𝐒𝐌𝐁 𝐢𝐦𝐩𝐥𝐞𝐦𝐞𝐧𝐭𝐚𝐭𝐢𝐨𝐧\n\"If you work in vulnerability research you should start paying close attention.\"\n\nSean Heelan (@seanhn) describes using OpenAI's o3 model to find a zero-day use-after-free vulnerability with nothing more complicated than the o3 API – no scaffolding, no agentic frameworks, no tool use. \n\nThe vulnerability it found requires reasoning about concurrent connections to the server, and how they may share various objects in specific circumstances.\n\nSean also describes testing o3 on a prior vulnerability he found, and the context he gave to the LLM to reason about (a ‘session setup’ command handler + the code for all the functions it calls, up to a call depth of 3), along with the prompts used and code analyzed.\n\n“The main takeaway from this post is this: with o3 LLMs have made a leap forward in their ability to reason about code, and if you work in vulnerability research you should start paying close attention.”\n\n💡 I love the thoughtful methodology and that Sean shared the supporting artifacts (prompts, code targeted, etc.). \n\nWhat’s also key here, that I don’t see most companies leveraging for bug hunting talk about, is: 𝐡𝐨𝐰 𝐫𝐞𝐥𝐢𝐚𝐛𝐥𝐞 𝐚𝐫𝐞 𝐋𝐋𝐌𝐬 𝐢𝐧 𝐝𝐞𝐭𝐞𝐜𝐭𝐢𝐧𝐠 𝐭𝐡𝐞 𝐬𝐚𝐦𝐞 𝐛𝐮𝐠?\n\n“o3 finds the kerberos authentication vulnerability in the benchmark in 8 of the 100 runs. In another 66 of the runs o3 concludes there is no bug present in the code (false negatives), and the remaining 28 reports are false positives.”\n \nhttps://sean.heelan.io/2025/05/22/how-i-used-o3-to-find-cve-2025-37899-a-remote-zeroday-vulnerability-in-the-linux-kernels-smb-implementation/",
+  "raw_text": {
+   "text": "🔥 𝐨3 𝐟𝐨𝐮𝐧𝐝 𝐚 𝐫𝐞𝐦𝐨𝐭𝐞 𝐳𝐞𝐫𝐨𝐝𝐚𝐲 𝐯𝐮𝐥𝐧𝐞𝐫𝐚𝐛𝐢𝐥𝐢𝐭𝐲 𝐢𝐧 𝐭𝐡𝐞 𝐋𝐢𝐧𝐮𝐱 𝐤𝐞𝐫𝐧𝐞𝐥’𝐬 𝐒𝐌𝐁 𝐢𝐦𝐩𝐥𝐞𝐦𝐞𝐧𝐭𝐚𝐭𝐢𝐨𝐧\n\"If you work in vulnerability research you should start paying close attention.\"\n\nSean Heelan (@seanhn) describes using OpenAI's o3 model to find a zero-day use-after-free vulnerability with nothing more complicated than the o3 API – no scaffolding, no agentic frameworks, no tool use. \n\nThe vulnerability it found requires reasoning about concurrent connections to the server, and how they may share various objects in specific circumstances.\n\nSean also describes testing o3 on a prior vulnerability he found, and the context he gave to the LLM to reason about (a ‘session setup’ command handler + the code for all the functions it calls, up to a call depth of 3), along with the prompts used and code analyzed.\n\n“The main takeaway from this post is this: with o3 LLMs have made a leap forward in their ability to reason about code, and if you work in vulnerability research you should start paying close attention.”\n\n💡 I love the thoughtful methodology and that Sean shared the supporting artifacts (prompts, code targeted, etc.). \n\nWhat’s also key here, that I don’t see most companies leveraging for bug hunting talk about, is: 𝐡𝐨𝐰 𝐫𝐞𝐥𝐢𝐚𝐛𝐥𝐞 𝐚𝐫𝐞 𝐋𝐋𝐌𝐬 𝐢𝐧 𝐝𝐞𝐭𝐞𝐜𝐭𝐢𝐧𝐠 𝐭𝐡𝐞 𝐬𝐚𝐦𝐞 𝐛𝐮𝐠?\n\n“o3 finds the kerberos authentication vulnerability in the benchmark in 8 of the 100 runs. In another 66 of the runs o3 concludes there is no bug present in the code (false negatives), and the remaining 28 reports are false positives.”\n \nhttps://t.co/m9btPYtcU5",
+   "display_text_range": [
+    0,
+    1634
+   ],
+   "facets": [
+    {
+     "type": "mention",
+     "indices": [
+      178,
+      185
+     ],
+     "original": "seanhn",
+     "id": "15429588"
+    },
+    {
+     "type": "media",
+     "indices": [
+      212,
+      235
+     ],
+     "id": "1927501762128150528",
+     "display": "pic.x.com/Z1il0PJQmJ",
+     "original": "https://t.co/Z1il0PJQmJ",
+     "replacement": "https://x.com/clintgibler/status/1927502471254937674/photo/1"
+    },
+    {
+     "type": "url",
+     "indices": [
+      1503,
+      1526
+     ],
+     "original": "https://t.co/m9btPYtcU5",
+     "replacement": "https://sean.heelan.io/2025/05/22/how-i-used-o3-to-find-cve-2025-37899-a-remote-zeroday-vulnerability-in-the-linux-kernels-smb-implementation/",
+     "display": "sean.heelan.io/2025/05/22/how…"
+    }
+   ]
+  },
+  "author": {
+   "screen_name": "clintgibler",
+   "url": "https://x.com/clintgibler",
+   "id": "720576770",
+   "followers": 26330,
+   "following": 586,
+   "likes": 4671,
+   "media_count": 1473,
+   "name": "Clint Gibler",
+   "description": "🛡️ Leading Cyber at @OpenAI\n📚 Creator of http://tldrsec.com newsletter",
+   "raw_description": {
+    "text": "🛡️ Leading Cyber at @OpenAI\n📚 Creator of https://t.co/xwtIAI0CuJ newsletter",
+    "facets": [
+     {
+      "type": "url",
+      "indices": [
+       41,
+       64
+      ],
+      "original": "https://t.co/xwtIAI0CuJ",
+      "replacement": "http://tldrsec.com",
+      "display": "tldrsec.com"
+     }
+    ]
+   },
+   "location": "Join 90,000+ readers →",
+   "banner_url": "https://pbs.twimg.com/profile_banners/720576770/1711521271",
+   "avatar_url": "https://pbs.twimg.com/profile_images/860562378441740288/MgPA8UqM_200x200.jpg",
+   "joined": "Fri Jul 27 17:49:39 +0000 2012",
+   "protected": false,
+   "website": {
+    "url": "https://tldrsec.com/subscribe",
+    "display_url": "tldrsec.com/subscribe"
+   },
+   "verification": {
+    "verified": true,
+    "verified_at": null,
+    "type": "individual"
+   },
+   "avatar_color": null
+  },
+  "replies": 1,
+  "retweets": 4,
+  "likes": 24,
+  "bookmarks": 15,
+  "quotes": 1,
+  "created_at": "Tue May 27 23:09:35 +0000 2025",
+  "created_timestamp": 1748387375,
+  "possibly_sensitive": false,
+  "views": 2523,
+  "is_note_tweet": true,
+  "community_note": null,
+  "lang": "en",
+  "replying_to": null,
+  "replying_to_status": null,
+  "media": {
+   "all": [
+    {
+     "type": "photo",
+     "id": "1927501762128150528",
+     "url": "https://pbs.twimg.com/media/Gr_co-uWgAAdk9o.jpg?name=orig",
+     "width": 2048,
+     "height": 1282
+    }
+   ],
+   "photos": [
+    {
+     "type": "photo",
+     "id": "1927501762128150528",
+     "url": "https://pbs.twimg.com/media/Gr_co-uWgAAdk9o.jpg?name=orig",
+     "width": 2048,
+     "height": 1282
+    }
+   ]
+  },
+  "twitter_card": "summary_large_image",
+  "color": null,
+  "provider": "twitter",
+  "reposted_by": null
+ }
+}

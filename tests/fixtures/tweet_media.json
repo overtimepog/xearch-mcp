@@ -1,0 +1,180 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 24,
+ "lang": "en",
+ "possibly_sensitive": false,
+ "created_at": "2025-05-27T23:09:35.000Z",
+ "display_text_range": [
+  0,
+  279
+ ],
+ "entities": {
+  "media": [
+   {
+    "display_url": "pic.x.com/Z1il0PJQmJ",
+    "expanded_url": "https://x.com/clintgibler/status/1927502471254937674/photo/1",
+    "indices": [
+     212,
+     235
+    ],
+    "url": "https://t.co/Z1il0PJQmJ"
+   }
+  ],
+  "user_mentions": [
+   {
+    "id_str": "15429588",
+    "indices": [
+     178,
+     185
+    ],
+    "name": "Sean Heelan",
+    "screen_name": "seanhn"
+   }
+  ]
+ },
+ "id_str": "1927502471254937674",
+ "text": "🔥 𝐨3 𝐟𝐨𝐮𝐧𝐝 𝐚 𝐫𝐞𝐦𝐨𝐭𝐞 𝐳𝐞𝐫𝐨𝐝𝐚𝐲 𝐯𝐮𝐥𝐧𝐞𝐫𝐚𝐛𝐢𝐥𝐢𝐭𝐲 𝐢𝐧 𝐭𝐡𝐞 𝐋𝐢𝐧𝐮𝐱 𝐤𝐞𝐫𝐧𝐞𝐥’𝐬 𝐒𝐌𝐁 𝐢𝐦𝐩𝐥𝐞𝐦𝐞𝐧𝐭𝐚𝐭𝐢𝐨𝐧\n\"If you work in vulnerability research you should start paying close attention.\"\n\nSean Heelan (@seanhn) describes using OpenAI's https://t.co/Z1il0PJQmJ",
+ "user": {
+  "id_str": "720576770",
+  "name": "Clint Gibler",
+  "screen_name": "clintgibler",
+  "is_blue_verified": true,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/860562378441740288/MgPA8UqM_normal.jpg"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "1927502471254937674"
+  ],
+  "editable_until_msecs": "1748390975000",
+  "edits_remaining": "5",
+  "is_edit_eligible": false
+ },
+ "mediaDetails": [
+  {
+   "display_url": "pic.x.com/Z1il0PJQmJ",
+   "expanded_url": "https://x.com/clintgibler/status/1927502471254937674/photo/1",
+   "ext_media_availability": {
+    "status": "Available"
+   },
+   "indices": [
+    212,
+    235
+   ],
+   "media_url_https": "https://pbs.twimg.com/media/Gr_co-uWgAAdk9o.jpg",
+   "original_info": {
+    "focus_rects": [
+     {
+      "h": 1147,
+      "w": 2048,
+      "x": 0,
+      "y": 0
+     },
+     {
+      "h": 1282,
+      "w": 1282,
+      "x": 0,
+      "y": 0
+     },
+     {
+      "h": 1282,
+      "w": 1125,
+      "x": 0,
+      "y": 0
+     },
+     {
+      "h": 1282,
+      "w": 641,
+      "x": 0,
+      "y": 0
+     },
+     {
+      "h": 1282,
+      "w": 2048,
+      "x": 0,
+      "y": 0
+     }
+    ],
+    "height": 1282,
+    "width": 2048
+   },
+   "sizes": {
+    "large": {
+     "h": 1282,
+     "resize": "fit",
+     "w": 2048
+    },
+    "medium": {
+     "h": 751,
+     "resize": "fit",
+     "w": 1200
+    },
+    "small": {
+     "h": 426,
+     "resize": "fit",
+     "w": 680
+    },
+    "thumb": {
+     "h": 150,
+     "resize": "crop",
+     "w": 150
+    }
+   },
+   "type": "photo",
+   "url": "https://t.co/Z1il0PJQmJ"
+  }
+ ],
+ "photos": [
+  {
+   "backgroundColor": {
+    "red": 204,
+    "green": 214,
+    "blue": 221
+   },
+   "cropCandidates": [
+    {
+     "h": 1147,
+     "w": 2048,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "h": 1282,
+     "w": 1282,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "h": 1282,
+     "w": 1125,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "h": 1282,
+     "w": 641,
+     "x": 0,
+     "y": 0
+    },
+    {
+     "h": 1282,
+     "w": 2048,
+     "x": 0,
+     "y": 0
+    }
+   ],
+   "expandedUrl": "https://x.com/clintgibler/status/1927502471254937674/photo/1",
+   "url": "https://pbs.twimg.com/media/Gr_co-uWgAAdk9o.jpg",
+   "width": 2048,
+   "height": 1282
+  }
+ ],
+ "conversation_count": 1,
+ "news_action_type": "conversation",
+ "isEdited": false,
+ "isStaleEdit": false,
+ "note_tweet": {
+  "id": "Tm90ZVR3ZWV0UmVzdWx0czoxOTI3NTAyNDcwOTQ4ODA2NjU2"
+ }
+}

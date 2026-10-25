@@ -1,0 +1,105 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 0,
+ "lang": "zh",
+ "created_at": "2026-10-22T17:56:37.000Z",
+ "display_text_range": [
+  0,
+  173
+ ],
+ "entities": {
+  "user_mentions": [
+   {
+    "id_str": "209811713",
+    "indices": [
+     52,
+     67
+    ],
+    "name": "The Hacker News",
+    "screen_name": "TheHackersNews"
+   }
+  ]
+ },
+ "id_str": "2113328686342853058",
+ "text": "🚨 Linux 核心 SMB 伺服器爆出兩個 CVSS 9.0 遠端執行漏洞，主線尚未修補\n\n資安媒體 @TheHackersNews 報導，Linux 核心內建的 SMB 伺服器 KSMBD，被公開披露兩個評分達 CVSS 9.0 的遠端程式碼執行漏洞。這兩個漏洞是在修補尚未就緒前，就已出現在公開的核心郵件清單上。\n\n📌重點整理\n\n1️⃣",
+ "user": {
+  "id_str": "940334438608650240",
+  "name": "動區動趨 BlockTempo",
+  "screen_name": "BlockTempo",
+  "is_blue_verified": true,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/1053324521858420737/9Be4ZVL2_normal.jpg"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "2113328686342853058"
+  ],
+  "editable_until_msecs": "1792695397000",
+  "edits_remaining": "5",
+  "is_edit_eligible": true
+ },
+ "conversation_count": 1,
+ "news_action_type": "conversation",
+ "quoted_tweet": {
+  "favorite_count": 1202,
+  "lang": "en",
+  "possibly_sensitive": false,
+  "reply_count": 37,
+  "retweet_count": 237,
+  "created_at": "2026-10-22T17:04:50.000Z",
+  "display_text_range": [
+   0,
+   268
+  ],
+  "entities": {
+   "hashtags": [
+    {
+     "indices": [
+      50,
+      56
+     ],
+     "text": "Linux"
+    }
+   ],
+   "urls": [
+    {
+     "display_url": "thehackernews.com/2026/10/two-cv…",
+     "expanded_url": "https://thehackernews.com/2026/10/two-cvss-90-linux-ksmbd-rce-flaws.html",
+     "indices": [
+      245,
+      268
+     ],
+     "url": "https://t.co/0MIHpvkPIQ"
+    }
+   ]
+  },
+  "id_str": "2113315655512731872",
+  "text": "‼️ALERT - Two new unpatched CVSS 9.0 RCE flaws in #Linux's KSMBD SMB server were disclosed on public kernel mailing lists before fixes were ready.\n\nOne can be triggered WITHOUT authentication.\n\nNeither has a mainline kernel fix.\n\nDetails here ↓ https://t.co/0MIHpvkPIQ",
+  "user": {
+   "id_str": "209811713",
+   "name": "The Hacker News",
+   "screen_name": "TheHackersNews",
+   "is_blue_verified": false,
+   "profile_image_shape": "Square",
+   "verified": false,
+   "verified_type": "Business",
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/1597647879811657728/FLgHrLHy_normal.jpg"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "2113315655512731872"
+   ],
+   "editable_until_msecs": "1792692290000",
+   "edits_remaining": "5",
+   "is_edit_eligible": true
+  },
+  "isEdited": false,
+  "isStaleEdit": false
+ },
+ "isEdited": false,
+ "isStaleEdit": false,
+ "note_tweet": {
+  "id": "Tm90ZVR3ZWV0UmVzdWx0czoyMTEzMzI4Njg2MjM3ODg0NDE3"
+ }
+}

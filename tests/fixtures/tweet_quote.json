@@ -1,0 +1,80 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 105,
+ "lang": "en",
+ "created_at": "2026-10-02T05:06:01.000Z",
+ "display_text_range": [
+  0,
+  127
+ ],
+ "entities": {},
+ "id_str": "2105887002520584458",
+ "text": "Linux kernel release with over 1,000 security vulnerabilities fixed. It’s going to be an interesting year in computer security.",
+ "user": {
+  "id_str": "126226388",
+  "name": "Jay Kreps",
+  "screen_name": "jaykreps",
+  "is_blue_verified": true,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/1123808410510737408/NCWzmizz_normal.png"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "2105887002520584458"
+  ],
+  "editable_until_msecs": "1790921161000",
+  "edits_remaining": "5",
+  "is_edit_eligible": true
+ },
+ "conversation_count": 4,
+ "news_action_type": "conversation",
+ "quoted_tweet": {
+  "favorite_count": 1714,
+  "lang": "en",
+  "possibly_sensitive": false,
+  "reply_count": 75,
+  "retweet_count": 152,
+  "created_at": "2026-09-30T10:17:51.000Z",
+  "display_text_range": [
+   0,
+   69
+  ],
+  "entities": {
+   "urls": [
+    {
+     "display_url": "lwn.net/Articles/10974…",
+     "expanded_url": "https://lwn.net/Articles/1097401/",
+     "indices": [
+      46,
+      69
+     ],
+     "url": "https://t.co/eqnwUrpF1v"
+    }
+   ]
+  },
+  "id_str": "2105240703383027897",
+  "text": "\"Several vulnerabilities\" in the Linux kernel https://t.co/eqnwUrpF1v",
+  "user": {
+   "id_str": "17396038",
+   "name": "Frank",
+   "screen_name": "jedisct1",
+   "is_blue_verified": true,
+   "profile_image_shape": "Circle",
+   "verified": false,
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/378800000465432261/9c8a36d41f9512fe9dd79eeed6eb17c4_normal.jpeg"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "2105240703383027897"
+   ],
+   "editable_until_msecs": "1790767071000",
+   "edits_remaining": "5",
+   "is_edit_eligible": true
+  },
+  "isEdited": false,
+  "isStaleEdit": false
+ },
+ "isEdited": false,
+ "isStaleEdit": false
+}

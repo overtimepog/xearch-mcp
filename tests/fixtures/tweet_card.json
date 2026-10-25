@@ -1,0 +1,86 @@
+{
+ "__typename": "Tweet",
+ "favorite_count": 0,
+ "lang": "en",
+ "possibly_sensitive": false,
+ "created_at": "2025-09-04T05:59:23.000Z",
+ "display_text_range": [
+  0,
+  102
+ ],
+ "entities": {
+  "urls": [
+   {
+    "display_url": "upwind.io/feed/linux-ker…",
+    "expanded_url": "https://www.upwind.io/feed/linux-kernel-smb-0-day-vulnerability-cve-2025-37899-uncovered-using-chatgpt-o3",
+    "indices": [
+     79,
+     102
+    ],
+    "url": "https://t.co/I6l1JxQurK"
+   }
+  ]
+ },
+ "id_str": "1963482002956451873",
+ "text": "Linux Kernel SMB 0-Day Vulnerability CVE-2025-37899 Uncovered Using ChatGPT o3 https://t.co/I6l1JxQurK",
+ "user": {
+  "id_str": "58461453",
+  "name": "TRONCAL Yannick",
+  "screen_name": "ytroncal",
+  "is_blue_verified": false,
+  "profile_image_shape": "Circle",
+  "verified": false,
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/1696163111/AIbEiAIAAABECIrq7bKOsNWu2AEiC3ZjYXJkX3Bob3RvKigxZjI3OTc1M2NhMDM2NWY5M2JjYjBhMzQzYTVkODYwMDUxNWRlYzFhMAFpLPUSdHK_uXH2x5n8PIy2emmySA_normal.jpeg"
+ },
+ "edit_control": {
+  "edit_tweet_ids": [
+   "1963482002956451873"
+  ],
+  "editable_until_msecs": "1756969163000",
+  "edits_remaining": "5",
+  "is_edit_eligible": true
+ },
+ "conversation_count": 0,
+ "news_action_type": "conversation",
+ "card": {
+  "card_platform": {
+   "platform": {
+    "audience": {
+     "name": "production"
+    },
+    "device": {
+     "name": "iPhone",
+     "version": "13"
+    }
+   }
+  },
+  "name": "summary_large_image",
+  "url": "https://t.co/I6l1JxQurK",
+  "binding_values": {
+   "description": {
+    "string_value": "For the first time, a zero-day vulnerability in the Linux kernel has been discovered using a large language model, OpenAI’s o3. Discovered by security researcher Sean Heelan and assigned CVE-2025-3...",
+    "type": "STRING"
+   },
+   "domain": {
+    "string_value": "www.upwind.io",
+    "type": "STRING"
+   },
+   "vanity_url": {
+    "scribe_key": "vanity_url",
+    "string_value": "upwind.io",
+    "type": "STRING"
+   },
+   "title": {
+    "string_value": "Linux Kernel SMB 0-Day Vulnerability CVE-2025-37899 Uncovered Using ChatGPT o3",
+    "type": "STRING"
+   },
+   "card_url": {
+    "scribe_key": "card_url",
+    "string_value": "https://t.co/I6l1JxQurK",
+    "type": "STRING"
+   }
+  }
+ },
+ "isEdited": false,
+ "isStaleEdit": false
+}

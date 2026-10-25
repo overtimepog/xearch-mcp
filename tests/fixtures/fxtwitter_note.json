@@ -1,0 +1,164 @@
+{
+ "code": 200,
+ "message": "OK",
+ "tweet": {
+  "url": "https://x.com/BlockTempo/status/2113328686342853058",
+  "id": "2113328686342853058",
+  "text": "🚨 Linux 核心 SMB 伺服器爆出兩個 CVSS 9.0 遠端執行漏洞，主線尚未修補\n\n資安媒體 @TheHackersNews 報導，Linux 核心內建的 SMB 伺服器 KSMBD，被公開披露兩個評分達 CVSS 9.0 的遠端程式碼執行漏洞。這兩個漏洞是在修補尚未就緒前，就已出現在公開的核心郵件清單上。\n\n📌重點整理\n\n1️⃣ ZDI-CAN-33774：無需認證即可觸發，任何開啟 KSMBD、監聽 445 埠的伺服器都可能受影響\n\n2️⃣ ZDI-CAN-33549：發生在 SMB Direct 路徑，需具備 RDMA 網路介面、可寫入的 KSMBD 分享，以及客戶端協商 SMB Direct\n\n3️⃣ 截至 10 月 22 日，主線核心與 linux-next 都還沒有正式修補，也尚未分配 CVE（核心專案慣例是穩定分支修補後才編號）\n\n4️⃣ 由趨勢科技 Zero Day Initiative（TrendAI）發現；Red Hat Enterprise Linux 預設不安裝 KSMBD\n\n管理員可用 `systemctl status ksmbd` 或 `lsmod | grep ksmbd` 確認模組是否啟用。若非必要，建議先關閉 KSMBD。",
+  "raw_text": {
+   "text": "🚨 Linux 核心 SMB 伺服器爆出兩個 CVSS 9.0 遠端執行漏洞，主線尚未修補\n\n資安媒體 @TheHackersNews 報導，Linux 核心內建的 SMB 伺服器 KSMBD，被公開披露兩個評分達 CVSS 9.0 的遠端程式碼執行漏洞。這兩個漏洞是在修補尚未就緒前，就已出現在公開的核心郵件清單上。\n\n📌重點整理\n\n1️⃣ ZDI-CAN-33774：無需認證即可觸發，任何開啟 KSMBD、監聽 445 埠的伺服器都可能受影響\n\n2️⃣ ZDI-CAN-33549：發生在 SMB Direct 路徑，需具備 RDMA 網路介面、可寫入的 KSMBD 分享，以及客戶端協商 SMB Direct\n\n3️⃣ 截至 10 月 22 日，主線核心與 linux-next 都還沒有正式修補，也尚未分配 CVE（核心專案慣例是穩定分支修補後才編號）\n\n4️⃣ 由趨勢科技 Zero Day Initiative（TrendAI）發現；Red Hat Enterprise Linux 預設不安裝 KSMBD\n\n管理員可用 `systemctl status ksmbd` 或 `lsmod | grep ksmbd` 確認模組是否啟用。若非必要，建議先關閉 KSMBD。",
+   "display_text_range": [
+    0,
+    544
+   ],
+   "facets": [
+    {
+     "type": "mention",
+     "indices": [
+      52,
+      67
+     ],
+     "original": "TheHackersNews",
+     "id": "209811713"
+    }
+   ]
+  },
+  "author": {
+   "screen_name": "BlockTempo",
+   "url": "https://x.com/BlockTempo",
+   "id": "940334438608650240",
+   "followers": 25806,
+   "following": 1073,
+   "likes": 5254,
+   "media_count": 6046,
+   "name": "動區動趨 BlockTempo",
+   "description": "動區動趨BlockTempo是中文區塊鏈媒體的領導品牌，為您帶來最即時最全面區塊鏈消息與全球脈動剖析",
+   "raw_description": {
+    "text": "動區動趨BlockTempo是中文區塊鏈媒體的領導品牌，為您帶來最即時最全面區塊鏈消息與全球脈動剖析",
+    "facets": []
+   },
+   "location": "",
+   "banner_url": "https://pbs.twimg.com/profile_banners/940334438608650240/1723187135",
+   "avatar_url": "https://pbs.twimg.com/profile_images/1053324521858420737/9Be4ZVL2_200x200.jpg",
+   "joined": "Mon Dec 11 21:36:15 +0000 2017",
+   "protected": false,
+   "website": {
+    "url": "https://linktr.ee/blocktempomedia",
+    "display_url": "linktr.ee/blocktempomedia"
+   },
+   "verification": {
+    "verified": true,
+    "verified_at": null,
+    "type": "individual"
+   },
+   "avatar_color": null
+  },
+  "replies": 1,
+  "retweets": 0,
+  "likes": 0,
+  "bookmarks": 0,
+  "quotes": 0,
+  "created_at": "Thu Oct 22 17:56:37 +0000 2026",
+  "created_timestamp": 1792691797,
+  "views": 708,
+  "is_note_tweet": true,
+  "community_note": null,
+  "lang": "zh",
+  "replying_to": null,
+  "replying_to_status": null,
+  "quote": {
+   "url": "https://x.com/TheHackersNews/status/2113315655512731872",
+   "id": "2113315655512731872",
+   "text": "‼️ALERT - Two new unpatched CVSS 9.0 RCE flaws in #Linux's KSMBD SMB server were disclosed on public kernel mailing lists before fixes were ready.\n\nOne can be triggered WITHOUT authentication.\n\nNeither has a mainline kernel fix.\n\nDetails here ↓ https://thehackernews.com/2026/10/two-cvss-90-linux-ksmbd-rce-flaws.html",
+   "raw_text": {
+    "text": "‼️ALERT - Two new unpatched CVSS 9.0 RCE flaws in #Linux's KSMBD SMB server were disclosed on public kernel mailing lists before fixes were ready.\n\nOne can be triggered WITHOUT authentication.\n\nNeither has a mainline kernel fix.\n\nDetails here ↓ https://t.co/0MIHpvkPIQ",
+    "display_text_range": [
+     0,
+     268
+    ],
+    "facets": [
+     {
+      "type": "hashtag",
+      "indices": [
+       50,
+       56
+      ],
+      "original": "Linux"
+     },
+     {
+      "type": "url",
+      "indices": [
+       245,
+       268
+      ],
+      "original": "https://t.co/0MIHpvkPIQ",
+      "replacement": "https://thehackernews.com/2026/10/two-cvss-90-linux-ksmbd-rce-flaws.html",
+      "display": "thehackernews.com/2026/10/two-cv…"
+     }
+    ]
+   },
+   "author": {
+    "screen_name": "TheHackersNews",
+    "url": "https://x.com/TheHackersNews",
+    "id": "209811713",
+    "followers": 2455674,
+    "following": 2013,
+    "likes": 8025,
+    "media_count": 9895,
+    "name": "The Hacker News",
+    "description": "The #1 trusted source for cybersecurity news, insights, and analysis — built for defenders and trusted by decision-makers.",
+    "raw_description": {
+     "text": "The #1 trusted source for cybersecurity news, insights, and analysis — built for defenders and trusted by decision-makers.",
+     "facets": []
+    },
+    "location": "The Internet",
+    "banner_url": "https://pbs.twimg.com/profile_banners/209811713/1669744480",
+    "avatar_url": "https://pbs.twimg.com/profile_images/1597647879811657728/FLgHrLHy_200x200.jpg",
+    "joined": "Fri Oct 29 23:55:25 +0000 2010",
+    "protected": false,
+    "website": {
+     "url": "https://thehackernews.com/",
+     "display_url": "thehackernews.com"
+    },
+    "verification": {
+     "verified": true,
+     "verified_at": null,
+     "type": "organization"
+    },
+    "avatar_color": null
+   },
+   "replies": 37,
+   "retweets": 237,
+   "likes": 1202,
+   "bookmarks": 357,
+   "quotes": 70,
+   "created_at": "Thu Oct 22 17:04:50 +0000 2026",
+   "created_timestamp": 1792688690,
+   "possibly_sensitive": false,
+   "views": 134138,
+   "is_note_tweet": false,
+   "community_note": null,
+   "lang": "en",
+   "replying_to": null,
+   "replying_to_status": null,
+   "card": {
+    "url": "https://thehackernews.com/2026/10/two-cvss-90-linux-ksmbd-rce-flaws.html",
+    "title": "Two CVSS 9.0 Linux KSMBD RCE Flaws Disclosed on Public Mailing Lists Before Kernel Fixes",
+    "description": "Two CVSS 9.0 flaws in Linux KSMBD could enable remote code execution; one needs no authentication, and neither has a mainline fix.",
+    "domain": "thehackernews.com",
+    "image": {
+     "width": 800,
+     "height": 419,
+     "url": "https://pbs.twimg.com/card_img/2113315328365322240/JQPTRGt-?format=jpg&name=800x419"
+    }
+   },
+   "twitter_card": "tweet",
+   "color": null,
+   "provider": "twitter",
+   "reposted_by": null
+  },
+  "color": null,
+  "provider": "twitter",
+  "reposted_by": null
+ }
+}
