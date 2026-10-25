@@ -1,6 +1,6 @@
 [project]
 name = "xearch-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Xearch MCP — search and read X/Twitter posts without an API key"
 readme = "README.md"
 license = { text = "MIT" }
@@ -49,7 +49,7 @@ packages = ["src/xearch_mcp"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
-  "integration: hits live X/Brave endpoints (skipped unless XEARCH_RUN_INTEGRATION=1)",
+  "integration: hits live X/search endpoints (skipped unless XEARCH_RUN_INTEGRATION=1)",
 ]
 
 [tool.ruff]

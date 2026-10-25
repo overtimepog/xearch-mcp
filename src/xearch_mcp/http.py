@@ -67,6 +67,7 @@ class HttpClient:
         *,
         params: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
+        json: Any | None = None,
         headers: dict[str, str] | None = None,
         retries: int = 2,
         follow_redirects: bool | None = None,
@@ -85,6 +86,7 @@ class HttpClient:
                     url,
                     params=params,
                     data=data,
+                    json=json,
                     headers=headers,
                     follow_redirects=follow_redirects,
                 )
@@ -155,6 +157,22 @@ class HttpClient:
             headers=headers,
             retries=retries,
             follow_redirects=follow_redirects,
+        )
+
+    async def post_json(
+        self,
+        url: str,
+        *,
+        json: Any,
+        headers: dict[str, str] | None = None,
+        retries: int = 1,
+    ) -> httpx2.Response:
+        return await self.request(
+            "POST",
+            url,
+            json=json,
+            headers=headers,
+            retries=retries,
         )
 
     async def get_json(

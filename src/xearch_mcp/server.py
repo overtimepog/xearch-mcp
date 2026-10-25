@@ -43,9 +43,10 @@ Xearch reads and searches public X/Twitter posts without an API key.
   min_retweets:).
 - Use get_user_tweets for one account's recent posts, and get_user for public
   profile metadata.
-- Search results come from public web indexes (DuckDuckGo, then Brave) scoped to
-  x.com and are hydrated through X's public syndication endpoint. This is not X's
-  live search; very recent posts may not be indexed yet.
+- Search results come from public web indexes scoped to x.com (Parallel, then
+  Exa, then DuckDuckGo and Brave) and are hydrated through X's public
+  syndication endpoint. This is not X's live search; very recent posts may not
+  be indexed yet.
 
 Limits: get_tweet returns one post plus its quoted post, not the whole thread or
 replies. Deleted, protected, or age-gated posts are unavailable. Follower counts
@@ -221,8 +222,9 @@ async def search_tweets(
     include full tweet text, author, date, metrics, and media when available.
 
     This is web-index search, not X's live search. Very recent posts may not be
-    indexed yet. The server tries DuckDuckGo's HTML endpoint, then Brave. Set
-    BRAVE_API_KEY to use Brave's official API instead of the keyless endpoints.
+    indexed yet. By default the server uses the same keyless Exa and Parallel
+    MCP search endpoints as OpenCode, then falls back to DuckDuckGo and Brave.
+    Set BRAVE_API_KEY to add Brave's official API.
     """
     return await _call(
         _search_tweets(
@@ -314,6 +316,8 @@ async def status(
         "search_backend": settings.configured_search_backend(),
         "search_backend_order": backend_order(settings),
         "brave_api_key_set": bool(settings.brave_api_key),
+        "parallel_api_key_set": bool(settings.parallel_api_key),
+        "exa_api_key_set": bool(settings.exa_api_key),
         "enrichment": settings.enrich,
         "link_resolution": settings.resolve_links,
         "limits": {
@@ -325,6 +329,8 @@ async def status(
         "cache": rt.registry.stats(),
         "endpoints": {
             "syndication": settings.syndication_url,
+            "search_parallel": settings.parallel_mcp_url,
+            "search_exa": settings.exa_mcp_url,
             "search_ddg": settings.ddg_search_url,
             "search_brave": settings.brave_search_url,
             "brave_api": settings.brave_api_url if settings.brave_api_key else None,

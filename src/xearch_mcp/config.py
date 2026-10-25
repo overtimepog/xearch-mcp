@@ -57,6 +57,8 @@ class Settings:
     enrich: bool = True
     resolve_links: bool = True
     brave_api_key: str | None = None
+    parallel_api_key: str | None = None
+    exa_api_key: str | None = None
     search_backend: str = "auto"
     brave_country: str = "us"
     health_tweet_id: str = DEFAULT_HEALTH_TWEET_ID
@@ -66,6 +68,9 @@ class Settings:
     ddg_search_url: str = "https://html.duckduckgo.com/html/"
     brave_search_url: str = "https://search.brave.com/search"
     brave_api_url: str = "https://api.search.brave.com/res/v1/web/search"
+    parallel_mcp_url: str = "https://search.parallel.ai/mcp"
+    exa_mcp_url: str = "https://mcp.exa.ai/mcp"
+    mcp_results: int = 20
     x_profile_url: str = "https://x.com"
     extra: dict[str, str] = field(default_factory=dict)
 
@@ -89,8 +94,15 @@ def get_settings() -> Settings:
         enrich=_env_bool("XEARCH_ENRICH", True),
         resolve_links=_env_bool("XEARCH_RESOLVE_LINKS", True),
         brave_api_key=(os.getenv("BRAVE_API_KEY") or None),
+        parallel_api_key=(os.getenv("PARALLEL_API_KEY") or None),
+        exa_api_key=(os.getenv("EXA_API_KEY") or None),
         search_backend=os.getenv("XEARCH_SEARCH_BACKEND", "auto"),
         brave_country=os.getenv("XEARCH_BRAVE_COUNTRY", "us"),
         health_tweet_id=os.getenv("XEARCH_HEALTH_TWEET_ID", DEFAULT_HEALTH_TWEET_ID),
         log_level=os.getenv("XEARCH_LOG_LEVEL", "WARNING").upper(),
+        parallel_mcp_url=os.getenv(
+            "XEARCH_PARALLEL_URL", "https://search.parallel.ai/mcp"
+        ),
+        exa_mcp_url=os.getenv("XEARCH_EXA_URL", "https://mcp.exa.ai/mcp"),
+        mcp_results=max(1, min(20, _env_int("XEARCH_MCP_RESULTS", 20))),
     )

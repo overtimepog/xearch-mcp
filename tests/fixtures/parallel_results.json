@@ -1,0 +1,42 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"search_id\":\"search_test\",\"results\":[{\"url\":\"https://x.com/TheHackersNews/status/2113315655512731872\",\"title\":\"The Hacker News on X\",\"publish_date\":\"2026-10-22\",\"excerpts\":[\"Two unpatched CVSS 9.0 RCE flaws in Linux KSMBD.\"]},{\"url\":\"https://x.com/DarkWebInformer/status/2113342426584625378\",\"title\":\"Dark Web Informer on X\",\"publish_date\":\"2026-10-22\",\"excerpts\":[\"Two critical Linux KSMBD remote code execution flaws.\"]}]}"
+      }
+    ],
+    "isError": false,
+    "structuredContent": {
+      "search_id": "search_test",
+      "results": [
+        {
+          "url": "https://x.com/TheHackersNews/status/2113315655512731872",
+          "title": "The Hacker News on X",
+          "publish_date": "2026-10-22",
+          "excerpts": [
+            "Two unpatched CVSS 9.0 RCE flaws in Linux KSMBD."
+          ]
+        },
+        {
+          "url": "https://x.com/DarkWebInformer/status/2113342426584625378",
+          "title": "Dark Web Informer on X",
+          "publish_date": "2026-10-22",
+          "excerpts": [
+            "Two critical Linux KSMBD remote code execution flaws."
+          ]
+        },
+        {
+          "url": "https://example.com/not-a-tweet",
+          "title": "Not a tweet",
+          "publish_date": null,
+          "excerpts": ["This should be ignored."]
+        }
+      ],
+      "warnings": null,
+      "session_id": "session_test"
+    }
+  }
+}

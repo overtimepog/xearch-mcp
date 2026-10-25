@@ -15,6 +15,9 @@ from xearch_mcp.search import (
     build_query,
     parse_brave_html,
     parse_ddg_html,
+    parse_exa_results,
+    parse_mcp_body,
+    parse_parallel_results,
     search_tweets,
 )
 
@@ -35,6 +38,32 @@ def test_parse_brave_results(fixture_text) -> None:
     assert {hit.username for hit in hits} == {"DarkWebInformer", "BlockTempo", "rohanpaul_ai"}
     assert all(hit.tweet_id.isdigit() for hit in hits)
     assert all(hit.title for hit in hits)
+
+
+def test_parse_parallel_results(fixture_json) -> None:
+    hits = parse_parallel_results(fixture_json("parallel_results.json"))
+    assert len(hits) == 2
+    assert hits[0].tweet_id == "2113315655512731872"
+    assert hits[0].username == "TheHackersNews"
+    assert "KSMBD" in hits[0].snippet
+    assert all(hit.url.startswith("https://x.com/") for hit in hits)
+
+
+def test_parse_exa_results_from_sse(fixture_text) -> None:
+    payload = parse_mcp_body(fixture_text("exa_results.sse"))
+    hits = parse_exa_results(payload)
+    assert len(hits) == 2
+    assert {hit.username for hit in hits} == {"TheHackersNews", "DarkWebInformer"}
+    assert all("/status/" in hit.url for hit in hits)
+    assert hits[0].title == "The Hacker News on X"
+
+
+def test_mcp_query_rewrites_profile_scope() -> None:
+    from xearch_mcp.search import _mcp_query
+
+    assert _mcp_query("site:x.com/seanhn") == "site:x.com seanhn posts"
+    assert _mcp_query("site:x.com/seanhn o3") == "site:x.com seanhn o3"
+    assert _mcp_query("site:x.com kernel") == "site:x.com kernel"
 
 
 @pytest.mark.parametrize("parser", [parse_ddg_html, parse_brave_html])
@@ -153,15 +182,15 @@ def test_apply_filters_links_accepts_card() -> None:
 
 def test_backend_order_auto_without_key() -> None:
     settings = Settings(search_backend="auto")
-    assert backend_order(settings) == ["ddg", "brave"]
+    assert backend_order(settings) == ["parallel", "exa", "ddg", "brave"]
 
 
 def test_backend_order_auto_with_key() -> None:
     settings = Settings(search_backend="auto", brave_api_key="key")
-    assert backend_order(settings) == ["brave-api", "ddg", "brave"]
+    assert backend_order(settings) == ["parallel", "exa", "brave-api", "ddg", "brave"]
 
 
-@pytest.mark.parametrize("backend", ["ddg", "brave", "brave-api"])
+@pytest.mark.parametrize("backend", ["parallel", "exa", "ddg", "brave", "brave-api"])
 def test_backend_order_explicit(backend: str) -> None:
     settings = Settings(search_backend=backend)
     assert backend_order(settings) == [backend]

@@ -1,23 +1,25 @@
-"""Search X/Twitter through Brave's web index, then hydrate tweets.
+"""Search X/Twitter through public web indexes, then hydrate tweets.
 
-Brave indexes x.com status URLs. We scope a Brave query to x.com, extract the
-status IDs, and fetch each tweet through the public syndication endpoint. This
-gives full tweet JSON without an X API key.
+Search uses the same keyless MCP search endpoints as OpenCode: Parallel first,
+then Exa. Both return ordinary web results, which Xearch scopes to x.com and
+turns into status IDs before hydrating each post through the public syndication
+endpoint. DuckDuckGo and Brave remain as fallbacks, and Brave's official API is
+used when BRAVE_API_KEY is set.
 
-Two Brave backends are supported:
-  * brave-html (default): the public search page, no key needed.
-  * brave-api: the official API, used automatically when BRAVE_API_KEY is set.
+Result pages are cached, so pagination through the MCP backends does not repeat
+the same upstream search.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from typing import Any, Literal
-from urllib.parse import parse_qs, unquote, urljoin, urlparse
+from urllib.parse import parse_qs, unquote, urlencode, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -45,7 +47,17 @@ SortOrder = Literal["relevance", "latest"]
 BRAVE_FRESHNESS = {"any": None, "day": "pd", "week": "pw", "month": "pm", "year": "py"}
 BRAVE_API_FRESHNESS = {"any": None, "day": "pd", "week": "pw", "month": "pm", "year": "py"}
 DDG_FRESHNESS = {"any": None, "day": "d", "week": "w", "month": "m", "year": "y"}
-BACKENDS = {"ddg", "brave", "brave-api"}
+BACKENDS = {"parallel", "exa", "ddg", "brave", "brave-api"}
+MCP_PAGE_SIZE = 10
+
+MIRROR_STATUS_URL_RE = re.compile(
+    r"https?://[^\s/]+/([A-Za-z0-9_]{1,15})/status(?:es)?/(\d{1,25})",
+    re.IGNORECASE,
+)
+MCP_BLOCK_RE = re.compile(r"\n\s*\n---\s*\n\s*\n")
+MCP_URL_RE = re.compile(r"^URL:\s*(\S+)", re.MULTILINE)
+MCP_TITLE_RE = re.compile(r"^Title:\s*(.+)$", re.MULTILINE)
+MCP_BODY_RE = re.compile(r"^(?:Highlights|Text):\s*\n?([\s\S]*)$", re.MULTILINE)
 
 FROM_RE = re.compile(r"(?:^|\s)from:([A-Za-z0-9_]{1,15})\b", re.IGNORECASE)
 SINCE_RE = re.compile(r"(?:^|\s)since:(\S+)", re.IGNORECASE)
@@ -180,6 +192,121 @@ def parse_ddg_html(page_html: str) -> list[SearchHit]:
             "DuckDuckGo served a challenge page instead of results. Try again later."
         )
     return list(hits.values())
+
+
+def _record_hit(url: str, title: str, snippet: str) -> SearchHit | None:
+    """Turn a search result URL into a canonical X status hit."""
+    match = STATUS_URL_RE.search(url or "") or MIRROR_STATUS_URL_RE.search(url or "")
+    if not match:
+        return None
+    username, tweet_id = match.group(1), match.group(2)
+    return SearchHit(
+        tweet_id=tweet_id,
+        url=f"https://x.com/{username}/status/{tweet_id}",
+        username=username,
+        title=clean_inline(title),
+        snippet=clean_inline(snippet)[:800],
+    )
+
+
+def _dedupe_hits(hits: list[SearchHit]) -> list[SearchHit]:
+    deduped: dict[str, SearchHit] = {}
+    for hit in hits:
+        existing = deduped.get(hit.tweet_id)
+        if existing is None or len(hit.snippet) > len(existing.snippet):
+            deduped[hit.tweet_id] = hit
+    return list(deduped.values())
+
+
+def _mcp_content_text(result: dict[str, Any]) -> str:
+    for item in result.get("content") or []:
+        if isinstance(item, dict) and isinstance(item.get("text"), str):
+            return item["text"]
+    return ""
+
+
+def _unwrap_mcp_result(payload: dict[str, Any]) -> dict[str, Any]:
+    error = payload.get("error")
+    if isinstance(error, dict):
+        message = error.get("message") or "unknown MCP error"
+        raise SearchError(f"Search MCP endpoint returned an error: {message}")
+    result = payload.get("result", payload)
+    if not isinstance(result, dict):
+        raise SearchError("Search MCP endpoint returned an unexpected response.")
+    if result.get("isError"):
+        message = _mcp_content_text(result) or "unknown MCP error"
+        raise SearchError(f"Search MCP tool failed: {message}")
+    return result
+
+
+def parse_mcp_body(body: str) -> dict[str, Any]:
+    """Parse a JSON or SSE JSON-RPC response from an MCP search endpoint."""
+    trimmed = (body or "").strip()
+    if not trimmed:
+        raise SearchError("Search MCP endpoint returned an empty response.")
+    if trimmed.startswith("{"):
+        try:
+            payload = json.loads(trimmed)
+        except ValueError as exc:
+            raise SearchError("Search MCP endpoint returned invalid JSON.") from exc
+        if not isinstance(payload, dict):
+            raise SearchError("Search MCP endpoint returned an unexpected response.")
+        return payload
+    for line in trimmed.splitlines():
+        if not line.startswith("data: "):
+            continue
+        try:
+            payload = json.loads(line[6:])
+        except ValueError:
+            continue
+        if isinstance(payload, dict) and ("result" in payload or "error" in payload):
+            return payload
+    preview = trimmed[:160].replace("\n", " ")
+    raise SearchError(f"Search MCP endpoint returned an unreadable response: {preview!r}")
+
+
+def parse_parallel_results(payload: dict[str, Any]) -> list[SearchHit]:
+    """Extract x.com status links from Parallel's MCP response."""
+    result = _unwrap_mcp_result(payload)
+    structured = result.get("structuredContent")
+    if not isinstance(structured, dict):
+        text = _mcp_content_text(result)
+        try:
+            structured = json.loads(text)
+        except ValueError:
+            structured = {}
+    records = structured.get("results") if isinstance(structured, dict) else None
+    hits: list[SearchHit] = []
+    for item in records or []:
+        if not isinstance(item, dict):
+            continue
+        excerpts = item.get("excerpts") or []
+        snippet = " ".join(str(part) for part in excerpts if part)
+        hit = _record_hit(str(item.get("url") or ""), str(item.get("title") or ""), snippet)
+        if hit:
+            hits.append(hit)
+    return _dedupe_hits(hits)
+
+
+def parse_exa_results(payload: dict[str, Any]) -> list[SearchHit]:
+    """Extract X status links from Exa's MCP text response."""
+    result = _unwrap_mcp_result(payload)
+    text = _mcp_content_text(result)
+    hits: list[SearchHit] = []
+    for block in MCP_BLOCK_RE.split(text):
+        url_match = MCP_URL_RE.search(block)
+        if not url_match:
+            continue
+        title_match = MCP_TITLE_RE.search(block)
+        body_match = MCP_BODY_RE.search(block)
+        hit = _record_hit(
+            url_match.group(1),
+            title_match.group(1) if title_match else "",
+            body_match.group(1) if body_match else "",
+        )
+        if hit:
+            hits.append(hit)
+    return _dedupe_hits(hits)
 
 
 def _looks_blocked(page_html: str) -> bool:
@@ -532,14 +659,137 @@ async def _search_brave_api(
     return list(hits.values())
 
 
+def _mcp_query(query: str) -> str:
+    """Rewrite a profile-scoped query into the shape Parallel/Exa handle best.
+
+    Both endpoints accept ``site:x.com`` but return profiles instead of posts
+    when the query points at ``site:x.com/<user>``. Replacing the path with the
+    username as a term yields actual status URLs, which are filtered by author
+    after hydration anyway.
+    """
+    match = re.match(r"site:x\.com/([A-Za-z0-9_]+)(.*)", query.strip(), re.IGNORECASE)
+    if not match:
+        return query
+    username, rest = match.group(1), match.group(2).strip()
+    return f"site:x.com {username} {rest}".strip() if rest else f"site:x.com {username} posts"
+
+
+async def _search_mcp(
+    provider: Literal["parallel", "exa"],
+    query: str,
+    *,
+    page: int,
+    freshness: Freshness,
+    lang: str | None,
+) -> list[SearchHit]:
+    """Search through the keyless Exa/Parallel MCP endpoints OpenCode uses."""
+    rt = get_runtime()
+    settings = rt.settings
+    query = _mcp_query(query)
+    cache_key = f"mcp-full:{provider}:{query}:{freshness}:{lang}:{settings.mcp_results}"
+    cached = rt.search.get(cache_key)
+    if isinstance(cached, list):
+        hits: list[SearchHit] = cached
+    else:
+        await rt.mcp_limiter.wait()
+        headers = {
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+            "User-Agent": settings.user_agent,
+        }
+        if provider == "parallel":
+            url = settings.parallel_mcp_url
+            arguments: dict[str, Any] = {
+                "objective": f"Find X/Twitter posts matching: {query}",
+                "search_queries": [query],
+                "session_id": rt.mcp_session_id,
+            }
+            tool = "web_search"
+            if settings.parallel_api_key:
+                headers["Authorization"] = f"Bearer {settings.parallel_api_key}"
+        else:
+            url = settings.exa_mcp_url
+            arguments = {"query": query, "numResults": max(10, settings.mcp_results)}
+            tool = "web_search_exa"
+            if settings.exa_api_key:
+                separator = "&" if "?" in url else "?"
+                url = f"{url}{separator}{urlencode({'exaApiKey': settings.exa_api_key})}"
+
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": tool, "arguments": arguments},
+        }
+        try:
+            response = await rt.http.post_json(
+                url, json=payload, headers=headers, retries=1
+            )
+        except UpstreamError as exc:
+            label = "Parallel" if provider == "parallel" else "Exa"
+            if exc.status == 429:
+                raise SearchBlocked(
+                    f"{label} search is rate-limiting this IP. Try again shortly."
+                ) from exc
+            if exc.status in {401, 403}:
+                key_name = (
+                    "PARALLEL_API_KEY" if provider == "parallel" else "EXA_API_KEY"
+                )
+                raise SearchConfigError(
+                    f"{label} rejected the request (HTTP {exc.status}). Check {key_name} "
+                    "or unset it to use the keyless endpoint."
+                ) from exc
+            raise SearchError(f"{label} search failed: {exc}") from exc
+
+        data = parse_mcp_body(response.text)
+        hits = (
+            parse_parallel_results(data)
+            if provider == "parallel"
+            else parse_exa_results(data)
+        )
+        rt.search.set(cache_key, hits)
+
+    start = max(0, page - 1) * MCP_PAGE_SIZE
+    return hits[start : start + MCP_PAGE_SIZE]
+
+
+async def _search_parallel(
+    query: str,
+    *,
+    page: int,
+    freshness: Freshness,
+    lang: str | None,
+) -> list[SearchHit]:
+    return await _search_mcp(
+        "parallel", query, page=page, freshness=freshness, lang=lang
+    )
+
+
+async def _search_exa(
+    query: str,
+    *,
+    page: int,
+    freshness: Freshness,
+    lang: str | None,
+) -> list[SearchHit]:
+    return await _search_mcp("exa", query, page=page, freshness=freshness, lang=lang)
+
+
 def backend_order(settings: Any) -> list[str]:
-    """Return the backends to try, in order."""
+    """Return the backends to try, in order.
+
+    Auto mode mirrors OpenCode's search stack: Parallel and Exa first, then the
+    HTML fallbacks. Brave's official API is used when a key is configured.
+    """
     configured = settings.configured_search_backend()
     if configured != "auto":
         if configured not in BACKENDS:
-            raise SearchConfigError("XEARCH_SEARCH_BACKEND must be auto, ddg, brave, or brave-api.")
+            raise SearchConfigError(
+                "XEARCH_SEARCH_BACKEND must be auto, parallel, exa, ddg, brave, "
+                "or brave-api."
+            )
         return [configured]
-    order: list[str] = []
+    order: list[str] = ["parallel", "exa"]
     if settings.brave_api_key:
         order.append("brave-api")
     order.extend(["ddg", "brave"])
@@ -575,7 +825,15 @@ async def fetch_search_page(
     errors: list[tuple[str, str]] = []
     for backend in order:
         try:
-            if backend == "ddg":
+            if backend == "parallel":
+                hits = await _search_parallel(
+                    query, page=page, freshness=freshness, lang=lang
+                )
+            elif backend == "exa":
+                hits = await _search_exa(
+                    query, page=page, freshness=freshness, lang=lang
+                )
+            elif backend == "ddg":
                 hits = await _search_ddg_html(query, page=page, freshness=freshness, lang=lang)
             elif backend == "brave":
                 hits = await _search_brave_html(query, page=page, freshness=freshness, lang=lang)
@@ -589,6 +847,10 @@ async def fetch_search_page(
         except SearchError as exc:
             errors.append((backend, str(exc)))
             logger.warning("Search backend %s failed: %s", backend, exc)
+            continue
+
+        if not hits and auto and backend != order[-1]:
+            errors.append((backend, "no x.com results"))
             continue
 
         rt.search.set(cache_key, (hits, backend))
@@ -699,7 +961,7 @@ async def search_tweets(
         )
         raw_page_counts[current_page] = len(hits)
         all_hits.extend(hits)
-        page_size = 10 if backend == "ddg" else 20
+        page_size = 10 if backend in {"ddg", "parallel", "exa"} else 20
         if len(all_hits) >= target:
             break
         if len(hits) < page_size:

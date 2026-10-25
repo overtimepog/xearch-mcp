@@ -11,14 +11,18 @@ a batch of posts, keyword search over X/Twitter, and public profile metadata.
 It uses X's public syndication endpoint for post JSON, so there is no X login,
 cookie, or developer account involved.
 
-Search uses public web indexes scoped to `x.com` (DuckDuckGo by default, Brave
-as a fallback), then hydrates every hit through the syndication endpoint. Long
+Search uses the same keyless MCP search endpoints as OpenCode (Parallel, then
+Exa), with DuckDuckGo and Brave as fallbacks. Xearch scopes the results to
+`x.com`, then hydrates every hit through the syndication endpoint. Long
 ("note") posts are completed through [FxTwitter](https://github.com/FxEmbed/FxEmbed)
 when the syndication endpoint returns a preview.
 
 ## Features
 
 - **No X API key.** Read any public post from its ID or URL.
+- **OpenCode-style search.** Parallel and Exa's public MCP search endpoints are
+  used first, matching the search stack OpenCode uses. DuckDuckGo and Brave are
+  keyless fallbacks.
 - **Full long posts.** Note tweets are completed through FxTwitter when the
   syndication response is truncated.
 - **Search with X-style operators.** `from:`, `since:`, `until:`, `lang:`,
@@ -28,8 +32,8 @@ when the syndication endpoint returns a preview.
 - **Fast batch reads.** Fetch up to 25 posts per call with bounded concurrency.
 - **Caching and backoff.** TTL/LRU caches and polite rate limiting for the
   keyless search endpoints.
-- **Optional Brave API.** Set `BRAVE_API_KEY` to use Brave's official search
-  API instead of the HTML endpoint.
+- **Optional provider keys.** Set `PARALLEL_API_KEY` or `EXA_API_KEY` for paid
+  quota, and `BRAVE_API_KEY` to add Brave's official search API.
 - **No arbitrary URL fetching.** `t.co` redirects are the only links Xearch
   resolves, and only the `t.co` host is requested. This keeps link expansion
   from becoming an SSRF primitive.
@@ -104,6 +108,37 @@ Or add it to the config manually:
 Tool names are namespaced by the client. In OpenCode they appear as
 `xearch_get_tweet`, `xearch_search_tweets`, and so on (or under
 `tools.xearch.*` in Code Mode).
+
+### PentestCode
+
+PentestCode uses the OpenCode v1 MCP shape: entries live directly under `mcp`,
+not under `mcp.servers`. Add this to
+`~/.config/pentestcode/pentestcode.jsonc`:
+
+```jsonc
+{
+  "mcp": {
+    "xearch": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/overtimepog/xearch-mcp.git",
+        "xearch-mcp"
+      ],
+      "enabled": true,
+      "timeout": 120000
+    }
+  }
+}
+```
+
+The longer request timeout gives a search call room to finish after the MCP
+startup timeout. Restart PentestCode, then confirm the server is connected:
+
+```bash
+pentestcode mcp list
+```
 
 ### Cursor
 
@@ -233,9 +268,11 @@ one search request. Use it when a tool call is failing.
 
 ## How it works
 
-1. **Search.** Xearch sends a query scoped to `x.com` to DuckDuckGo's HTML
-   endpoint. If that is blocked or rate-limited, it tries Brave's HTML search
-   page. If `BRAVE_API_KEY` is set, Brave's official API is tried first.
+1. **Search.** Xearch sends a query scoped to `x.com` to the same keyless MCP
+   endpoints OpenCode uses. Parallel is tried first, then Exa. If both fail, it
+   falls back to DuckDuckGo's HTML endpoint and Brave's HTML search page. If
+   `BRAVE_API_KEY` is set, Brave's official API is inserted before the HTML
+   fallbacks.
 2. **Hydrate.** Each search hit's status ID is fetched from:
    `https://cdn.syndication.twimg.com/tweet-result?id=<id>&token=a`
 3. **Complete long posts.** If the response contains `note_tweet` or a
@@ -251,12 +288,14 @@ parameter. It returns one post, not a timeline or thread.
 ## Limits and honest caveats
 
 - **Search is web-index search, not X live search.** Very recent posts may not
-  be indexed yet. Search quality depends on DuckDuckGo/Brave coverage.
-- **Keyless search can be rate-limited.** DuckDuckGo and Brave may serve a
-  challenge after repeated requests. Xearch caches results, spaces requests,
-  and falls back between backends, but a shared IP can still be blocked. Set
-  `BRAVE_API_KEY` for reliable search, or run the server from a different
-  network.
+  be indexed yet. Search quality depends on Parallel/Exa and DuckDuckGo/Brave
+  coverage.
+- **Keyless search can be rate-limited.** The public MCP endpoints and the HTML
+  fallbacks may throttle a shared IP. Xearch caches results, spaces requests,
+  and falls back between backends. Set `PARALLEL_API_KEY` or `EXA_API_KEY` for
+  paid provider quota, or `BRAVE_API_KEY` for the official Brave API.
+- **MCP search pages are small.** Parallel usually returns about ten results
+  per query. Ask a narrower query when you need more precision.
 - **One post, not a thread.** `get_tweet` returns the requested post and its
   quoted post. Replies and the rest of the conversation are not available.
 - **No follower counts.** The public profile page does not expose them.
@@ -278,8 +317,13 @@ All settings are environment variables. None are required.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `BRAVE_API_KEY` | unset | Use Brave's official search API. In `auto` mode it is tried first. |
-| `XEARCH_SEARCH_BACKEND` | `auto` | `auto`, `ddg`, `brave`, or `brave-api`. |
+| `PARALLEL_API_KEY` | unset | Optional Parallel API key for paid quota. The keyless endpoint works without it. |
+| `EXA_API_KEY` | unset | Optional Exa API key. The keyless endpoint works without it. |
+| `BRAVE_API_KEY` | unset | Add Brave's official search API to the fallback chain. |
+| `XEARCH_SEARCH_BACKEND` | `auto` | `auto`, `parallel`, `exa`, `ddg`, `brave`, or `brave-api`. |
+| `XEARCH_PARALLEL_URL` | `https://search.parallel.ai/mcp` | Override the Parallel MCP endpoint. |
+| `XEARCH_EXA_URL` | `https://mcp.exa.ai/mcp` | Override the Exa MCP endpoint. |
+| `XEARCH_MCP_RESULTS` | `20` | Results requested from Exa per query (1-20). |
 | `XEARCH_ENRICH` | `1` | Complete truncated note posts via FxTwitter. |
 | `XEARCH_RESOLVE_LINKS` | `1` | Default for the `resolve_links` tool argument. |
 | `XEARCH_TIMEOUT` | `20` | Upstream request timeout in seconds. |
@@ -329,7 +373,7 @@ src/xearch_mcp/
   __main__.py      console entry point
   server.py        MCP tools and instructions
   syndication.py   post fetch, normalization, FxTwitter enrichment
-  search.py        DuckDuckGo/Brave search, hydration, profile reads
+  search.py        Parallel/Exa MCP search, fallbacks, hydration, profiles
   http.py          async HTTP client, retries, rate limiting
   cache.py         TTL + LRU caches
   config.py        environment settings
@@ -346,12 +390,15 @@ scripts/
 - Xearch never accepts arbitrary URLs to fetch. Search and profile hosts are
   fixed. Only `t.co` links are requested for redirect expansion, with redirects
   disabled after the first hop.
+- Search queries are sent to `search.parallel.ai` and `mcp.exa.ai` (the same
+  public endpoints OpenCode uses), or to DuckDuckGo/Brave when those fail.
+  `PARALLEL_API_KEY`, `EXA_API_KEY`, and `BRAVE_API_KEY`, if provided, stay in
+  the process environment and are sent only to their own provider.
 - Tweet text, quoted text, cards, and search snippets are untrusted data. The
   server's MCP instructions warn agents not to follow instructions found in
   them, but clients should treat this as a defense-in-depth measure, not a
   guarantee.
-- No credentials are stored. `BRAVE_API_KEY`, if provided, stays in the
-  process environment and is sent only to `api.search.brave.com`.
+- No credentials are stored.
 
 ## License
 

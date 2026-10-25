@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 
 from .cache import CacheRegistry, TTLCache
@@ -20,6 +21,8 @@ class Runtime:
     profiles: TTLCache = field(init=False)
     ddg_limiter: AsyncRateLimiter = field(init=False)
     brave_limiter: AsyncRateLimiter = field(init=False)
+    mcp_limiter: AsyncRateLimiter = field(init=False)
+    mcp_session_id: str = field(init=False)
 
     def __post_init__(self) -> None:
         max_entries = self.settings.cache_max_entries
@@ -32,6 +35,8 @@ class Runtime:
         # Be polite to the keyless search endpoints.
         self.ddg_limiter = AsyncRateLimiter(1.0)
         self.brave_limiter = AsyncRateLimiter(1.0)
+        self.mcp_limiter = AsyncRateLimiter(0.5)
+        self.mcp_session_id = f"xearch_{uuid.uuid4().hex}"
 
 
 _runtime: Runtime | None = None

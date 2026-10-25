@@ -49,9 +49,11 @@ async def test_status_offline() -> None:
     assert result.is_error is False
     data = result.structured_content
     assert data["name"] == "Xearch"
-    assert data["version"] == "0.1.0"
+    assert data["version"] == "0.2.0"
     assert data["search_backend"] == "auto"
-    assert data["search_backend_order"] == ["ddg", "brave"]
+    assert data["search_backend_order"] == ["parallel", "exa", "ddg", "brave"]
+    assert data["endpoints"]["search_parallel"].startswith("https://search.parallel.ai")
+    assert data["endpoints"]["search_exa"].startswith("https://mcp.exa.ai")
     assert data["endpoints"]["search_ddg"].startswith("https://html.duckduckgo.com")
     assert data["endpoints"]["syndication"].startswith("https://cdn.syndication.twimg.com")
 
