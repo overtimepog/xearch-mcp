@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from xearch_mcp.config import get_settings
 from xearch_mcp.runtime import reset_runtime
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -15,9 +16,11 @@ FIXTURES = Path(__file__).parent / "fixtures"
 @pytest.fixture(autouse=True)
 def _fresh_runtime():
     """Give every test a runtime bound to its own event loop."""
+    get_settings.cache_clear()
     reset_runtime()
     yield
     reset_runtime()
+    get_settings.cache_clear()
 
 
 @pytest.fixture

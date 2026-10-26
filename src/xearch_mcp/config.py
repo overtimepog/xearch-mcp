@@ -9,7 +9,7 @@ from functools import lru_cache
 DEFAULT_USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/131.0.0.0 Safari/537.36 Xearch/0.1"
+    "Chrome/131.0.0.0 Safari/537.36 Xearch/0.2"
 )
 
 DEFAULT_HEALTH_TWEET_ID = "1925502601757372656"  # @seanhn, stable public post

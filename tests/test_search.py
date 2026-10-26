@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date
 
 import pytest
 
 from xearch_mcp.config import Settings
-from xearch_mcp.errors import InvalidInput, SearchBlocked
+from xearch_mcp.errors import InvalidInput, SearchBlocked, SearchError
 from xearch_mcp.search import (
+    SearchHit,
     _decode_ddg_redirect,
+    _parallel_fallbacks,
     apply_filters,
     backend_order,
     build_query,
+    fetch_search_page,
     parse_brave_html,
     parse_ddg_html,
     parse_exa_results,
@@ -64,6 +68,116 @@ def test_mcp_query_rewrites_profile_scope() -> None:
     assert _mcp_query("site:x.com/seanhn") == "site:x.com seanhn posts"
     assert _mcp_query("site:x.com/seanhn o3") == "site:x.com seanhn o3"
     assert _mcp_query("site:x.com kernel") == "site:x.com kernel"
+
+
+def test_parallel_fallbacks_drop_site_scope() -> None:
+    assert _parallel_fallbacks("site:x.com php2shell") == [
+        "php2shell x.com",
+        "php2shell twitter",
+    ]
+    assert _parallel_fallbacks("site:x.com seanhn o3") == [
+        "seanhn o3 x.com",
+        "seanhn o3 twitter",
+    ]
+    assert _parallel_fallbacks("site:x.com") == []
+
+
+def test_fetch_search_page_returns_empty_when_backends_have_no_hits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import xearch_mcp.search as search
+
+    async def empty(*args, **kwargs):
+        return []
+
+    async def fail(*args, **kwargs):
+        raise SearchError("blocked")
+
+    monkeypatch.delenv("BRAVE_API_KEY", raising=False)
+    monkeypatch.setenv("XEARCH_SEARCH_BACKEND", "auto")
+    monkeypatch.setattr(search, "_search_parallel", empty)
+    monkeypatch.setattr(search, "_search_exa", empty)
+    monkeypatch.setattr(search, "_search_ddg_html", fail)
+    monkeypatch.setattr(search, "_search_brave_html", fail)
+
+    hits, backend = asyncio.run(
+        fetch_search_page("site:x.com php2shell", page=1, freshness="any", lang=None)
+    )
+    assert hits == []
+    assert backend == "parallel"
+
+
+def test_fetch_search_page_raises_when_every_backend_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import xearch_mcp.search as search
+
+    async def fail(*args, **kwargs):
+        raise SearchError("rate limited")
+
+    monkeypatch.delenv("BRAVE_API_KEY", raising=False)
+    monkeypatch.setenv("XEARCH_SEARCH_BACKEND", "auto")
+    monkeypatch.setattr(search, "_search_parallel", fail)
+    monkeypatch.setattr(search, "_search_exa", fail)
+    monkeypatch.setattr(search, "_search_ddg_html", fail)
+    monkeypatch.setattr(search, "_search_brave_html", fail)
+
+    with pytest.raises(SearchBlocked):
+        asyncio.run(
+            fetch_search_page("site:x.com kernel", page=1, freshness="any", lang=None)
+        )
+
+
+def test_search_tweets_zero_results_is_not_an_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import xearch_mcp.search as search
+
+    async def empty(*args, **kwargs):
+        return [], "parallel"
+
+    monkeypatch.setattr(search, "fetch_search_page", empty)
+    result = asyncio.run(search.search_tweets("php2shell", limit=3, hydrate=False))
+    assert result["count"] == 0
+    assert result["backend"] == "parallel"
+    assert any("No matching X posts" in note for note in result["notes"])
+
+
+def test_search_tweets_notes_broadened_results(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import xearch_mcp.search as search
+
+    hit = SearchHit(
+        tweet_id="123",
+        url="https://x.com/user/status/123",
+        username="user",
+        title="title",
+        snippet="snippet",
+        broadened=True,
+    )
+
+    async def broadened(*args, **kwargs):
+        return [hit], "parallel"
+
+    monkeypatch.setattr(search, "fetch_search_page", broadened)
+    result = asyncio.run(search.search_tweets("php2shell", limit=3, hydrate=False))
+    assert result["count"] == 1
+    assert any("broadened search" in note for note in result["notes"])
+
+
+def test_get_user_tweets_zero_results_has_user_note(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import xearch_mcp.search as search
+
+    async def empty(*args, **kwargs):
+        return {"count": 0, "notes": []}
+
+    monkeypatch.setattr(search, "search_tweets", empty)
+    result = asyncio.run(search.get_user_tweets("syrex1013", limit=3))
+    assert result["username"] == "syrex1013"
+    assert any("No indexed posts" in note for note in result["notes"])
 
 
 @pytest.mark.parametrize("parser", [parse_ddg_html, parse_brave_html])

@@ -1,6 +1,6 @@
 [project]
 name = "xearch-mcp"
-version = "0.2.0"
+version = "0.2.1"
 description = "Xearch MCP — search and read X/Twitter posts without an API key"
 readme = "README.md"
 license = { text = "MIT" }

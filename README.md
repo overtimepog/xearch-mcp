@@ -296,6 +296,11 @@ parameter. It returns one post, not a timeline or thread.
   paid provider quota, or `BRAVE_API_KEY` for the official Brave API.
 - **MCP search pages are small.** Parallel usually returns about ten results
   per query. Ask a narrower query when you need more precision.
+- **Zero results are a normal result.** If a search backend answers but finds no
+  x.com posts, Xearch returns an empty list with an explanation instead of
+  treating the whole search as a failure. For short queries with no indexed
+  results, it retries with a broadened query and labels those results in
+  `notes`.
 - **One post, not a thread.** `get_tweet` returns the requested post and its
   quoted post. Replies and the rest of the conversation are not available.
 - **No follower counts.** The public profile page does not expose them.

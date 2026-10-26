@@ -16,7 +16,7 @@ import asyncio
 import json
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from typing import Any, Literal
 from urllib.parse import parse_qs, unquote, urlencode, urljoin, urlparse
@@ -79,6 +79,7 @@ class SearchHit:
     username: str | None
     title: str
     snippet: str
+    broadened: bool = False
 
 
 @dataclass
@@ -674,6 +675,26 @@ def _mcp_query(query: str) -> str:
     return f"site:x.com {username} {rest}".strip() if rest else f"site:x.com {username} posts"
 
 
+def _parallel_fallbacks(query: str) -> list[str]:
+    """Build broader queries for Parallel when a narrow query returns nothing.
+
+    Parallel's keyless index sometimes returns zero status URLs for a single
+    term that is present on X. Dropping the ``site:`` restriction and adding
+    the platform name is enough to surface those posts, and status URLs are
+    still filtered during parsing.
+    """
+    cleaned = re.sub(r"site:x\.com(?:/[A-Za-z0-9_]+)?", "", query, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    if not cleaned:
+        return []
+    variants: list[str] = []
+    for suffix in ("x.com", "twitter"):
+        variant = f"{cleaned} {suffix}"
+        if variant not in variants:
+            variants.append(variant)
+    return variants
+
+
 async def _search_mcp(
     provider: Literal["parallel", "exa"],
     query: str,
@@ -715,38 +736,49 @@ async def _search_mcp(
                 separator = "&" if "?" in url else "?"
                 url = f"{url}{separator}{urlencode({'exaApiKey': settings.exa_api_key})}"
 
-        payload = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/call",
-            "params": {"name": tool, "arguments": arguments},
-        }
-        try:
-            response = await rt.http.post_json(
-                url, json=payload, headers=headers, retries=1
-            )
-        except UpstreamError as exc:
-            label = "Parallel" if provider == "parallel" else "Exa"
-            if exc.status == 429:
-                raise SearchBlocked(
-                    f"{label} search is rate-limiting this IP. Try again shortly."
-                ) from exc
-            if exc.status in {401, 403}:
-                key_name = (
-                    "PARALLEL_API_KEY" if provider == "parallel" else "EXA_API_KEY"
+        async def call_mcp(arguments: dict[str, Any]) -> list[SearchHit]:
+            payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {"name": tool, "arguments": arguments},
+            }
+            try:
+                response = await rt.http.post_json(
+                    url, json=payload, headers=headers, retries=1
                 )
-                raise SearchConfigError(
-                    f"{label} rejected the request (HTTP {exc.status}). Check {key_name} "
-                    "or unset it to use the keyless endpoint."
-                ) from exc
-            raise SearchError(f"{label} search failed: {exc}") from exc
+            except UpstreamError as exc:
+                label = "Parallel" if provider == "parallel" else "Exa"
+                if exc.status == 429:
+                    raise SearchBlocked(
+                        f"{label} search is rate-limiting this IP. Try again shortly."
+                    ) from exc
+                if exc.status in {401, 403}:
+                    key_name = (
+                        "PARALLEL_API_KEY" if provider == "parallel" else "EXA_API_KEY"
+                    )
+                    raise SearchConfigError(
+                        f"{label} rejected the request (HTTP {exc.status}). Check {key_name} "
+                        "or unset it to use the keyless endpoint."
+                    ) from exc
+                raise SearchError(f"{label} search failed: {exc}") from exc
 
-        data = parse_mcp_body(response.text)
-        hits = (
-            parse_parallel_results(data)
-            if provider == "parallel"
-            else parse_exa_results(data)
-        )
+            data = parse_mcp_body(response.text)
+            return (
+                parse_parallel_results(data)
+                if provider == "parallel"
+                else parse_exa_results(data)
+            )
+
+        hits = await call_mcp(arguments)
+        if provider == "parallel" and not hits:
+            fallback_queries = _parallel_fallbacks(query)
+            if fallback_queries:
+                await rt.mcp_limiter.wait()
+                arguments["search_queries"] = fallback_queries
+                hits = await call_mcp(arguments)
+                if hits:
+                    hits = [replace(hit, broadened=True) for hit in hits]
         rt.search.set(cache_key, hits)
 
     start = max(0, page - 1) * MCP_PAGE_SIZE
@@ -823,6 +855,7 @@ async def fetch_search_page(
             order = [preferred] + [backend for backend in order if backend != preferred]
 
     errors: list[tuple[str, str]] = []
+    empty_backend: str | None = None
     for backend in order:
         try:
             if backend == "parallel":
@@ -846,17 +879,37 @@ async def fetch_search_page(
             continue
         except SearchError as exc:
             errors.append((backend, str(exc)))
-            logger.warning("Search backend %s failed: %s", backend, exc)
+            if empty_backend is None:
+                logger.warning("Search backend %s failed: %s", backend, exc)
+            else:
+                logger.debug("Search fallback %s failed: %s", backend, exc)
             continue
 
-        if not hits and auto and backend != order[-1]:
-            errors.append((backend, "no x.com results"))
-            continue
+        if not hits:
+            if empty_backend is None:
+                empty_backend = backend
+            if auto and backend != order[-1]:
+                errors.append((backend, "no x.com results"))
+                continue
+            rt.search.set(cache_key, ([], backend))
+            if auto:
+                rt.search.set("backend:auto", backend)
+            return [], backend
 
         rt.search.set(cache_key, (hits, backend))
         if auto:
             rt.search.set("backend:auto", backend)
         return hits, backend
+
+    # A backend can legitimately find no matching posts. If at least one
+    # backend answered, return an empty page instead of reporting the complete
+    # failure of every later fallback. This matters when Parallel/Exa have no
+    # x.com hit and the HTML backends are rate-limiting a shared IP.
+    if empty_backend is not None:
+        rt.search.set(cache_key, ([], empty_backend))
+        if auto:
+            rt.search.set("backend:auto", empty_backend)
+        return [], empty_backend
 
     details = "; ".join(f"{backend}: {message}" for backend, message in errors)
     if any("challenge" in message.lower() or "rate" in message.lower() for _, message in errors):
@@ -924,7 +977,7 @@ async def search_tweets(
     enrich: bool | None = None,
     username: str | None = None,
 ) -> dict[str, Any]:
-    """Search x.com via Brave and optionally hydrate each result."""
+    """Search x.com through public web indexes and optionally hydrate results."""
     if limit < 1 or limit > 30:
         raise InvalidInput("limit must be between 1 and 30.")
     if page < 1 or page > 9:
@@ -983,6 +1036,16 @@ async def search_tweets(
         "Very recent posts may not be indexed yet."
     ]
     notes.extend(plan.notes)
+    if any(hit.broadened for hit in candidate_hits):
+        notes.append(
+            "The exact query had no indexed X results; these results are from a "
+            "broadened search. Verify relevance before relying on them."
+        )
+    if not candidate_hits:
+        notes.append(
+            "No matching X posts were found in the web index. Try broader keywords, "
+            "remove quotes or restrictive operators, or retry later."
+        )
 
     removed: dict[str, int] = {}
     if not hydrate:
@@ -1033,6 +1096,12 @@ async def search_tweets(
         if failed:
             notes.append(f"{failed} search result(s) could not be hydrated; stubs are included.")
 
+    if candidate_hits and not tweets:
+        notes.append(
+            "No matching posts survived filtering. Try broader keywords or remove "
+            "restrictive operators such as from:, since:, or min_faves:."
+        )
+
     return {
         "query": {
             "input": plan.input,
@@ -1079,6 +1148,11 @@ async def get_user_tweets(
         username=handle,
     )
     result["username"] = handle
+    if result.get("count") == 0:
+        result["notes"].append(
+            f"No indexed posts found for @{handle}. The account may be private, "
+            "inactive, or not indexed by the web search providers."
+        )
     return result
 
 

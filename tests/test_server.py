@@ -49,7 +49,7 @@ async def test_status_offline() -> None:
     assert result.is_error is False
     data = result.structured_content
     assert data["name"] == "Xearch"
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.2.1"
     assert data["search_backend"] == "auto"
     assert data["search_backend_order"] == ["parallel", "exa", "ddg", "brave"]
     assert data["endpoints"]["search_parallel"].startswith("https://search.parallel.ai")
